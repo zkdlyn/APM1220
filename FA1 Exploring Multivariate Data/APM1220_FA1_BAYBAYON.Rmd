@@ -1,0 +1,139 @@
+---
+title: "OL ACT 1"
+author: "Baybayon, Darlyn Antoinette B."
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Hands-on Activity: Exploring Multivariate Data
+
+```{r library}
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(tidyverse)
+  library(dplyr)
+  library(readr)
+  library(forecast)
+})
+
+```
+
+### I. Student Performance
+
+1. Import and Inspect Data
+
+```{r}
+Student <- c("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8")
+Math <- c(85, 88, 76, 90, 82,75,95, 80)
+English <- c(78, 82, 74, 88, 79, 72, 90, 77)
+Science <- c(92, 85, 80, 94, 86, 78, 98, 84)
+
+grades <- data.frame(Student, Math, English, Science)
+
+grades
+```
+The dataset has 8 observations and 4 columns - Student, Math, English, and Science. 
+
+The basic summary statistics for each column is displayed below.
+```{r}
+summary(grades)
+```
+
+2. Compute Mean Vectors
+```{r}
+mean_grades <- colMeans(grades[2:4])
+
+mean_grades
+
+```
+
+3. Compute Covariance & Correlation Matrices
+
+```{r}
+cov(grades[2:4])
+```
+
+```{r}
+cor(grades[2:4])
+```
+
+4. Scatterplots & Pair Plots
+
+```{r}
+plot(grades[2:4])
+```
+
+
+### II. Plant Measurements
+
+1. Import & Inspect Data
+```{r}
+Plant <-  c("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8")
+Height <- c(25, 28, 22, 30, 24, 27, 29, 23)
+LeafLength <- c(10,12,9, 14, 11, 13, 15, 10)
+LeafWidth <- c(4, 5, 3, 6, 4, 5, 6, 3)
+
+plant <- data.frame(Plant, Height, LeafLength, LeafWidth)
+plant
+```
+
+The dataset has 8 observations and 4 columns - Plant, Height, LeafLength, and LeafWidth. 
+
+The basic summary statistics for each column is displayed below.
+
+```{r}
+summary(plant)
+```
+
+```{r}
+
+```
+
+
+
+### III. Reflection
+
+1. Which variables have the largest and smallest ranges? What might this tell you about the variability of each variable?
+
+2. Are there any apparent outliers in the datasets? How would they affect your analysis?
+
+3. Compare the mean vectors of the Student and Plant datasets. What do the means tell you about the “center” of each dataset?
+
+4. How could these mean vectors be used in comparing observations or groups?
+
+5. Identify the strongest positive and negative correlations. What does this imply about the relationships between variables?
+
+6. How does standardizing variables affect the correlation matrix compared to the covariance matrix?
+
+7. Why is it important to examine both covariance and correlation when analyzing multivariate data?
+
+8. Are the relationships between variables approximately linear? Which variable pairs, if any, show nonlinear trends?
+
+9. Do the plots reveal potential clusters or subgroups within the data? How might this influence further analysis?
+
+10. Compare Euclidean and Mahalanobis distances for the same observations. How does Mahalanobis distance account for variable correlations?
+
+11. Which observations are farthest from the center of the dataset? Are these potential outliers?
+
+12. Do the Mardia test results suggest that the datasets follow a multivariate normaldistribution?
+
+13. If the assumption of multivariate normality is violated, what implications might this have for analyses such as MANOVA or discriminant analysis?
+
+14. Examine the Q-Q plots of Mahalanobis distances. Do points deviate strongly from the line? Which observations might be problematic?
+
+15. How do the visual plots complement or contrast with the numerical test results?
+
+
+16. How does creating a linear combination of variables (e.g., Math + Science) affect the variance?
+
+17. How is the correlation of this new variable with another variable (e.g., English) useful in understanding combined effects?
+
+18. Could linear combinations be used to create indices or scores? Provide an example from a real-world context.
+
+19. Across the analyses, which variable(s) appear most influential in defining the overall structure of the datasets?
+
+20. If you were to perform a principal component analysis (PCA), how might the findings from your scatterplots, correlations, and linear combinations guide you?
+
