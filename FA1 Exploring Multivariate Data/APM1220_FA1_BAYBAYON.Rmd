@@ -17,6 +17,8 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(readr)
   library(forecast)
+  library(rmarkdown)
+  library(knitr)
 })
 
 ```
@@ -63,7 +65,7 @@ cor(grades[2:4])
 4. Scatterplots & Pair Plots
 
 ```{r}
-plot(grades[2:4])
+pairs(grades[2:4])
 ```
 
 
@@ -88,10 +90,25 @@ The basic summary statistics for each column is displayed below.
 summary(plant)
 ```
 
+1. Compute Mean Vectors
 ```{r}
-
+mean_plant <- colMeans(plant[2:4])
+mean_plant
 ```
 
+1. Compute Covariance & Correlation Matrices
+```{r}
+cov(plant[2:4])
+cor(plant[2:4])
+```
+
+
+
+4. Scatterplots & Pair Plots
+```{r}
+pairs(plant[2:4])
+
+```
 
 
 ### III. Reflection
@@ -136,4 +153,5 @@ summary(plant)
 19. Across the analyses, which variable(s) appear most influential in defining the overall structure of the datasets?
 
 20. If you were to perform a principal component analysis (PCA), how might the findings from your scatterplots, correlations, and linear combinations guide you?
+
 
