@@ -17,10 +17,9 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(readr)
   library(forecast)
-  library(rmarkdown)
-  library(knitr)
+  library(MVN)
+  
 })
-
 ```
 
 ### I. Student Performance
@@ -33,9 +32,9 @@ Math <- c(85, 88, 76, 90, 82,75,95, 80)
 English <- c(78, 82, 74, 88, 79, 72, 90, 77)
 Science <- c(92, 85, 80, 94, 86, 78, 98, 84)
 
-grades <- data.frame(Student, Math, English, Science)
+students <- data.frame(Student, Math, English, Science)
 
-grades
+students
 ```
 The dataset has 8 observations and 4 columns - Student, Math, English, and Science. 
 
@@ -46,27 +45,104 @@ summary(grades)
 
 2. Compute Mean Vectors
 ```{r}
-mean_grades <- colMeans(grades[2:4])
+grades <- students[,2:4]
+means_grades <- colMeans(grades)
 
-mean_grades
-
+means_grades
 ```
 
 3. Compute Covariance & Correlation Matrices
 
 ```{r}
-cov(grades[2:4])
+cov_grades <-cov(grades)
+cov_grades
 ```
 
 ```{r}
-cor(grades[2:4])
+cor(grades)
 ```
 
 4. Scatterplots & Pair Plots
 
 ```{r}
-pairs(grades[2:4])
+pairs(grades)
 ```
+
+5. Distance Measures
+
+Compute Euclidean and Mahalanobis distances.
+
+```{r}
+# euclidean_dist <- as.matrix(dist(grades, method="euclidean"))
+euclidean_dist_student <- apply(grades, 1, function(x) {
+  sqrt(sum((x - means_grades)^2))
+})
+
+# rownames(euclidean_dist) <- students$Student
+names(euclidean_dist_student) <- students$Student
+round(euclidean_dist_student, 4)
+
+```
+
+```{r}
+# mahalanobis_matrix <- matrix(0, 8, 8)
+# 
+# for(i in 1: 8) {
+#   for(j in 1: 8) {
+#     mahalanobis_matrix[i, j] <- mahalanobis(as.numeric(grades[i, ]), as.numeric(grades[j, ]), cov_grades)
+#   }
+# }
+# rownames(mahalanobis_matrix) <- students$Student
+# colnames(mahalanobis_matrix) <- students$Student
+# mahalanobis_matrix
+
+mahalanobis_dist_student <- mahalanobis(grades, means_grades, cov_grades)
+names(mahalanobis_dist_student) <- students$Student
+round(mahalanobis_dist_student, 4)
+```
+
+
+
+
+6. Test Multivariate Normality
+```{r}
+MVN::mardia(grades)
+```
+
+The skewness statistic was 17.58 (p = 0.062), and the kurtosis statistic was -0.28 (p = 0.776). SInce both p-values exceed the significance level of 0.05, there are no significant skewness and excess kurtosis. Thus, based on Mardia's test, we have insufficient evidence to reject multivariate normality assumption and can reasonably assume that this dataset follows a multivariate normal distribution.
+
+```{r}
+MVN::hz(grades)
+```
+
+The Henze-Zirkler test tests the deviation from multivariate normality. The result show a statistic of 0.773 and p = 0.02 which indicates significant evidence to reject multivariate normality. 
+
+
+
+7. Visualize Multivariate Normality
+```{r}
+multivariate_diagnostic_plot(grades, type="qq")
+```
+
+The plot above shows the multivariate Q-Q plot of the squared Mahalanobis distances to assess multivariate normality. As shown, most of the points in the plot lie closely along the diagonal, indicating good agreement with the expected normal distribution with some larger deviations from the center.
+
+
+8. Linear Combination of 2 Variables
+
+```{r}
+grades$MathSci <- 0.5*grades$Math + 0.5*grades$Science
+
+grades$MathSci
+```
+
+```{r}
+data.frame(
+  Mean = mean(grades$MathSci),
+  Var = var(grades$MathSci),
+  Cor_with_Eng = cor(grades$MathSci, grades$English)
+)
+```
+
 
 
 ### II. Plant Measurements
@@ -90,32 +166,97 @@ The basic summary statistics for each column is displayed below.
 summary(plant)
 ```
 
-1. Compute Mean Vectors
+2. Compute Mean Vectors
 ```{r}
-mean_plant <- colMeans(plant[2:4])
-mean_plant
+dims <- plant[,2:4]
+means_plant <- colMeans(dims)
+means_plant
 ```
 
-1. Compute Covariance & Correlation Matrices
+3. Compute Covariance & Correlation Matrices
 ```{r}
-cov(plant[2:4])
-cor(plant[2:4])
+cov_dims <- cov(dims)
+cov_dims
+```
+
+```{r}
+cor(dims)
 ```
 
 
 
 4. Scatterplots & Pair Plots
 ```{r}
-pairs(plant[2:4])
+pairs(dims)
+```
+
+
+5. Distance Measures
+
+Compute Euclidean and Mahalanobis distances.
+```{r}
+# euclidean_dist <- dist(dims, method="euclidean")
+# as.matrix(round(euclidean_dist,4))
+
+euclidean_dist_plant <- apply(dims, 1, function(x) {
+  sqrt(sum((x - means_plant)^2))
+})
+
+# rownames(euclidean_dist) <- students$Student
+names(euclidean_dist_plant) <- plant$Plant
+round(euclidean_dist_plant, 4)
+```
+
+```{r}
+mahalanobis_dist_plant <- mahalanobis(dims, means_plant, cov_dims)
+names(mahalanobis_dist_plant) <- plant$Plant
+round(mahalanobis_dist_plant, 4)
+```
+
+6. Test Multivariate Normality
+```{r}
+MVN::mardia(dims)
 
 ```
 
+The skewness statistic was 11.054 (p = 0.353), and the kurtosis statistic was -0.948 (p = 0.343). SInce both p-values exceed the significance level of 0.05, there are no significant skewness and excess kurtosis. Thus, we have insufficient evidence to reject multivariate normality assumption and can reasonably assume that this data follows a multivariate normal distribution.
+
+```{r}
+MVN::hz(dims)
+```
+
+The Henze-Zirkler test tests the deviation from multivariate normality. The result show a statistic of 0.498 and p = 0.37 which indicates insufficient evidence to reject multivariate normality. Hence, by Henze-Zirkler, we can reasonably assume multivariate normality.
+
+7. Visualize Multivariate Normality
+
+```{r}
+multivariate_diagnostic_plot(dims, type="qq")
+```
+
+The plot above shows the multivariate Q-Q plot of the squared Mahalanobis distances to assess multivariate normality. As showm, the points in the plot lie closely along the diagonal, indicating good agreement with the expected normal distribution, with some deviations.
+
+8. Linear Combination of 2 Variables
+
+```{r}
+dims$WidLen <- 0.5*dims$LeafWidth + 0.5*dims$LeafLength
+
+dims$WidLen
+```
+
+```{r}
+data.frame(
+  Mean = mean(dims$WidLen),
+  Var = var(dims$WidLen),
+  Cor_with_Height = cor(dims$WidLen, dims$Height)
+)
+```
 
 ### III. Reflection
 
 1. Which variables have the largest and smallest ranges? What might this tell you about the variability of each variable?
 
 2. Are there any apparent outliers in the datasets? How would they affect your analysis?
+None
 
 3. Compare the mean vectors of the Student and Plant datasets. What do the means tell you about the “center” of each dataset?
 
