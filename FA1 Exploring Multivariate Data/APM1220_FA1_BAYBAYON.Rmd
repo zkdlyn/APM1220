@@ -1,7 +1,7 @@
 ---
 title: "Formative Assessment 1"
 author: "Baybayon, Darlyn Antoinette B."
-output: github_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -324,7 +324,11 @@ According to the Mardia test, the datasets follow multivariate normal distributi
 
 13. If the assumption of multivariate normality is violated, what implications might this have for analyses such as MANOVA or discriminant analysis?
 
+The MANOVA requires that the data follows a multivariate normal distribution.  If violated, these analyses may lead to inaccurate inferences and invalid results potentially increasing Type I errors.
+
 14. Examine the Q-Q plots of Mahalanobis distances. Do points deviate strongly from the line? Which observations might be problematic?
+
+Most points lie near the diagonal of the Q-Q plots with some points deviating slightly. In the plants Q-Q plot, P8 is plotted far from the clustering of other points in the lower left area.
 
 15. How do the visual plots complement or contrast with the numerical test results?
 
