@@ -8,7 +8,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Hands-on Activity: Exploring Multivariate Data
+# Exploring Multivariate Data
 
 ```{r library}
 suppressPackageStartupMessages({
@@ -24,7 +24,7 @@ suppressPackageStartupMessages({
 
 ### I. Student Performance
 
-1. Import and Inspect Data
+1.  Import and Inspect Data
 
 ```{r}
 Student <- c("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8")
@@ -36,22 +36,38 @@ students <- data.frame(Student, Math, English, Science)
 
 students
 ```
-The dataset has 8 observations and 4 columns - Student, Math, English, and Science. 
+
+The dataset has 8 observations and 4 columns - Student, Math, English, and Science.
 
 The basic summary statistics for each column is displayed below.
+
 ```{r}
+grades <- students[,2:4]
 summary(grades)
 ```
 
-2. Compute Mean Vectors
-```{r}
-grades <- students[,2:4]
-means_grades <- colMeans(grades)
+Distribution per subject:
 
-means_grades
+```{r}
+boxplot(grades)
 ```
 
-3. Compute Covariance & Correlation Matrices
+```{r}
+apply(grades, 2, function(x) shapiro.test(x)$p.value)
+```
+
+Since p > 0.05 for all columns, the distribution of grades for each subject is normal.
+
+
+2.  Compute Mean Vectors
+
+```{r}
+center_grades <- colMeans(grades)
+
+center_grades
+```
+
+3.  Compute Covariance & Correlation Matrices
 
 ```{r}
 cov_grades <-cov(grades)
@@ -62,49 +78,35 @@ cov_grades
 cor(grades)
 ```
 
-4. Scatterplots & Pair Plots
+4.  Scatterplots & Pair Plots
 
 ```{r}
 pairs(grades)
 ```
 
-5. Distance Measures
+5.  Distance Measures
 
 Compute Euclidean and Mahalanobis distances.
 
 ```{r}
-# euclidean_dist <- as.matrix(dist(grades, method="euclidean"))
+
 euclidean_dist_student <- apply(grades, 1, function(x) {
-  sqrt(sum((x - means_grades)^2))
+  sqrt(sum((x - center_grades)^2))
 })
 
-# rownames(euclidean_dist) <- students$Student
 names(euclidean_dist_student) <- students$Student
 round(euclidean_dist_student, 4)
-
 ```
 
-```{r}
-# mahalanobis_matrix <- matrix(0, 8, 8)
-# 
-# for(i in 1: 8) {
-#   for(j in 1: 8) {
-#     mahalanobis_matrix[i, j] <- mahalanobis(as.numeric(grades[i, ]), as.numeric(grades[j, ]), cov_grades)
-#   }
-# }
-# rownames(mahalanobis_matrix) <- students$Student
-# colnames(mahalanobis_matrix) <- students$Student
-# mahalanobis_matrix
 
-mahalanobis_dist_student <- mahalanobis(grades, means_grades, cov_grades)
+```{r}
+mahalanobis_dist_student <- mahalanobis(grades, center_grades, cov_grades)
 names(mahalanobis_dist_student) <- students$Student
 round(mahalanobis_dist_student, 4)
 ```
 
+6.  Test Multivariate Normality
 
-
-
-6. Test Multivariate Normality
 ```{r}
 MVN::mardia(grades)
 ```
@@ -115,19 +117,17 @@ The skewness statistic was 17.58 (p = 0.062), and the kurtosis statistic was -0.
 MVN::hz(grades)
 ```
 
-The Henze-Zirkler test tests the deviation from multivariate normality. The result show a statistic of 0.773 and p = 0.02 which indicates significant evidence to reject multivariate normality. 
+The Henze-Zirkler test tests the deviation from multivariate normality. The result show a statistic of 0.773 and p = 0.02 which indicates significant evidence to reject multivariate normality.
 
+7.  Visualize Multivariate Normality
 
-
-7. Visualize Multivariate Normality
 ```{r}
 multivariate_diagnostic_plot(grades, type="qq")
 ```
 
 The plot above shows the multivariate Q-Q plot of the squared Mahalanobis distances to assess multivariate normality. As shown, most of the points in the plot lie closely along the diagonal, indicating good agreement with the expected normal distribution with some larger deviations from the center.
 
-
-8. Linear Combination of 2 Variables
+8.  Linear Combination of 2 Variables
 
 ```{r}
 grades$MathSci <- 0.5*grades$Math + 0.5*grades$Science
@@ -143,11 +143,10 @@ data.frame(
 )
 ```
 
-
-
 ### II. Plant Measurements
 
-1. Import & Inspect Data
+1.  Import & Inspect Data
+
 ```{r}
 Plant <-  c("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8")
 Height <- c(25, 28, 22, 30, 24, 27, 29, 23)
@@ -158,62 +157,73 @@ plant <- data.frame(Plant, Height, LeafLength, LeafWidth)
 plant
 ```
 
-The dataset has 8 observations and 4 columns - Plant, Height, LeafLength, and LeafWidth. 
+The dataset has 8 observations and 4 columns - Plant, Height, LeafLength, and LeafWidth.
 
 The basic summary statistics for each column is displayed below.
 
 ```{r}
-summary(plant)
-```
-
-2. Compute Mean Vectors
-```{r}
 dims <- plant[,2:4]
-means_plant <- colMeans(dims)
-means_plant
+summary(dims)
 ```
 
-3. Compute Covariance & Correlation Matrices
+Distribution of each variable
+
+```{r}
+boxplot(dims)
+```
+
+
+```{r}
+apply(dims, 2, function(x) shapiro.test(x)$p.value)
+```
+Since p > 0.05 for every column, the distributions of each dimension of plants are normal.
+
+2.  Compute Mean Vectors
+
+```{r}
+center_dims <- colMeans(dims)
+center_dims
+```
+
+3.  Compute Covariance & Correlation Matrices
+
 ```{r}
 cov_dims <- cov(dims)
 cov_dims
+
 ```
 
 ```{r}
 cor(dims)
 ```
 
+4.  Scatterplots & Pair Plots
 
-
-4. Scatterplots & Pair Plots
 ```{r}
 pairs(dims)
 ```
 
-
-5. Distance Measures
+5.  Distance Measures
 
 Compute Euclidean and Mahalanobis distances.
-```{r}
-# euclidean_dist <- dist(dims, method="euclidean")
-# as.matrix(round(euclidean_dist,4))
 
+```{r}
 euclidean_dist_plant <- apply(dims, 1, function(x) {
-  sqrt(sum((x - means_plant)^2))
+  sqrt(sum((x - center_dims)^2))
 })
 
-# rownames(euclidean_dist) <- students$Student
 names(euclidean_dist_plant) <- plant$Plant
 round(euclidean_dist_plant, 4)
 ```
 
 ```{r}
-mahalanobis_dist_plant <- mahalanobis(dims, means_plant, cov_dims)
+mahalanobis_dist_plant <- mahalanobis(dims, center_dims, cov_dims)
 names(mahalanobis_dist_plant) <- plant$Plant
 round(mahalanobis_dist_plant, 4)
 ```
 
-6. Test Multivariate Normality
+6.  Test Multivariate Normality
+
 ```{r}
 MVN::mardia(dims)
 
@@ -227,7 +237,7 @@ MVN::hz(dims)
 
 The Henze-Zirkler test tests the deviation from multivariate normality. The result show a statistic of 0.498 and p = 0.37 which indicates insufficient evidence to reject multivariate normality. Hence, by Henze-Zirkler, we can reasonably assume multivariate normality.
 
-7. Visualize Multivariate Normality
+7.  Visualize Multivariate Normality
 
 ```{r}
 multivariate_diagnostic_plot(dims, type="qq")
@@ -235,7 +245,7 @@ multivariate_diagnostic_plot(dims, type="qq")
 
 The plot above shows the multivariate Q-Q plot of the squared Mahalanobis distances to assess multivariate normality. As showm, the points in the plot lie closely along the diagonal, indicating good agreement with the expected normal distribution, with some deviations.
 
-8. Linear Combination of 2 Variables
+8.  Linear Combination of 2 Variables
 
 ```{r}
 dims$WidLen <- 0.5*dims$LeafWidth + 0.5*dims$LeafLength
@@ -253,24 +263,23 @@ data.frame(
 
 ### III. Reflection
 
-1. Which variables have the largest and smallest ranges? What might this tell you about the variability of each variable?
+1.  Which variables have the largest and smallest ranges? What might this tell you about the variability of each variable?
 
-2. Are there any apparent outliers in the datasets? How would they affect your analysis?
-None
+2.  Are there any apparent outliers in the datasets? How would they affect your analysis? None
 
-3. Compare the mean vectors of the Student and Plant datasets. What do the means tell you about the “center” of each dataset?
+3.  Compare the mean vectors of the Student and Plant datasets. What do the means tell you about the “center” of each dataset?
 
-4. How could these mean vectors be used in comparing observations or groups?
+4.  How could these mean vectors be used in comparing observations or groups?
 
-5. Identify the strongest positive and negative correlations. What does this imply about the relationships between variables?
+5.  Identify the strongest positive and negative correlations. What does this imply about the relationships between variables?
 
-6. How does standardizing variables affect the correlation matrix compared to the covariance matrix?
+6.  How does standardizing variables affect the correlation matrix compared to the covariance matrix?
 
-7. Why is it important to examine both covariance and correlation when analyzing multivariate data?
+7.  Why is it important to examine both covariance and correlation when analyzing multivariate data?
 
-8. Are the relationships between variables approximately linear? Which variable pairs, if any, show nonlinear trends?
+8.  Are the relationships between variables approximately linear? Which variable pairs, if any, show nonlinear trends?
 
-9. Do the plots reveal potential clusters or subgroups within the data? How might this influence further analysis?
+9.  Do the plots reveal potential clusters or subgroups within the data? How might this influence further analysis?
 
 10. Compare Euclidean and Mahalanobis distances for the same observations. How does Mahalanobis distance account for variable correlations?
 
@@ -284,7 +293,6 @@ None
 
 15. How do the visual plots complement or contrast with the numerical test results?
 
-
 16. How does creating a linear combination of variables (e.g., Math + Science) affect the variance?
 
 17. How is the correlation of this new variable with another variable (e.g., English) useful in understanding combined effects?
@@ -294,5 +302,3 @@ None
 19. Across the analyses, which variable(s) appear most influential in defining the overall structure of the datasets?
 
 20. If you were to perform a principal component analysis (PCA), how might the findings from your scatterplots, correlations, and linear combinations guide you?
-
-
