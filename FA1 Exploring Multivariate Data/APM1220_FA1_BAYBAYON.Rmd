@@ -1,5 +1,5 @@
 ---
-title: "OL ACT 1"
+title: "Formative Assessment 1"
 author: "Baybayon, Darlyn Antoinette B."
 output: github_document
 ---
@@ -141,7 +141,15 @@ data.frame(
   Var = var(grades$MathSci),
   Cor_with_Eng = cor(grades$MathSci, grades$English)
 )
+
+sapply(grades, var)
 ```
+
+```{r}
+(0.5**2) * var(grades$Math) + (0.5**2)* var(grades$Science) + (2*0.5*0.5) * cov(grades$Math, grades$Science)
+```
+
+
 
 ### II. Plant Measurements
 
@@ -259,33 +267,60 @@ data.frame(
   Var = var(dims$WidLen),
   Cor_with_Height = cor(dims$WidLen, dims$Height)
 )
+sapply(dims,var)
 ```
 
 ### III. Reflection
 
 1.  Which variables have the largest and smallest ranges? What might this tell you about the variability of each variable?
 
-2.  Are there any apparent outliers in the datasets? How would they affect your analysis? None
+In the students dataset, Math and Science have the largest ranges (20) while English have the smallest (18). In the plants dataset, Height have the largest range (8) while LeafWidth have the smallest (3).
+
+Larger range indicates more spread or higher variability while smaller range indicate less spread around the mean.
+
+2.  Are there any apparent outliers in the datasets? How would they affect your analysis? 
+
+By visual inspection of the boxplots, no outliers are found in both datasets. Outliers could skew the distribution and inflate variance which may disrupt the structure needed for multivariate normality.
 
 3.  Compare the mean vectors of the Student and Plant datasets. What do the means tell you about the “center” of each dataset?
 
+The mean vectors represents the average across all variables. It defines the center of the multivariate distribution. The mean vector of the students dataset tell us that an average student scores about 83.9 in Math, 80 in English, and 87.1 in Science. The mean vector of the plants dataset tells us that an average plant would be about 26 units in height, 11.8 units in length, and 4.5 units in width.
+
 4.  How could these mean vectors be used in comparing observations or groups?
+
+The mean vectors allow us to compare observations with the central group tendencies (determine if the student is performing below or above average across different subjects) or compare two groups with each other (compare mean vectors of two student groups and determine the better performers).  
 
 5.  Identify the strongest positive and negative correlations. What does this imply about the relationships between variables?
 
+In the students dataset, Math and English have the strongest positive correlation (0.964). This implies a positive relationship between these variables where a student with high Math scores also tend to have high English scores. In the plants dataset, Height and LeafWidth have the strongest positive correlation (0.980) implying a positive relationship between the variables where taller plants tend to have wider leaves. No negative correlations are found in both datasets.
+
 6.  How does standardizing variables affect the correlation matrix compared to the covariance matrix?
+
+The covariance matrix shows the pair-wise covariance of variables, indicating the strength and direction of their relationship as well as reflect the absolute variability. When variables are standardized, we get the correlation matrix which only measures the relationship from a scale of -1 to 1.
 
 7.  Why is it important to examine both covariance and correlation when analyzing multivariate data?
 
+Examining both covariance and correlation provides a more complete understanding of the relationships between variables in multivariate data. Since multivariate data are not always measured in the same units, the covariance matrix may give us insight into how two variables vary together in their units. Meanwhile, if we only want to know the magnitude and direction of relationship, examining the correlation matrix would be appropriate.
+
 8.  Are the relationships between variables approximately linear? Which variable pairs, if any, show nonlinear trends?
+
+As shown in the pair-wise scatterplots, the relationships between variables are approximately linear.
 
 9.  Do the plots reveal potential clusters or subgroups within the data? How might this influence further analysis?
 
+The scatterplots of Height vs. LeafWidth and LeafLength vs. LeafWidth form some symmetry around the diagonal. This clustering may indicate that the variables are increasing in proportion to each other and have strong correlation. These variables are potentially redundant and we may consider combining them later on.
+
 10. Compare Euclidean and Mahalanobis distances for the same observations. How does Mahalanobis distance account for variable correlations?
+
+S3 from the students dataset have very different euclidean (12.2) and mahalanobis (1.58) distances. The euclidean distance is large likely due to lower scores in Math, English, and Science compared to the average. Meanwhile, since the Mahalanobis distance accounts for variable correlations using the covariance matrix, the resulting distance is small likely because the scores S3 have are not unusual relative to the spread of the data. 
 
 11. Which observations are farthest from the center of the dataset? Are these potential outliers?
 
+By the Mahalanobis distance, S2 lies the farthest from the center of the students dataset , while P8 lies farthest from the center of the plants dataset. S2 is not very far compared to other observations in the dataset. P8, however, is comparably farther from other plants. While S2 is not unusual from the rest of the observations, P8 may potentially be an outlier.
+
 12. Do the Mardia test results suggest that the datasets follow a multivariate normaldistribution?
+
+According to the Mardia test, the datasets follow multivariate normal distributions. Since both p-values for skewness and kurtosis exceed the significance level of 0.05, there are no significant skewness and excess kurtosis.
 
 13. If the assumption of multivariate normality is violated, what implications might this have for analyses such as MANOVA or discriminant analysis?
 
@@ -293,12 +328,40 @@ data.frame(
 
 15. How do the visual plots complement or contrast with the numerical test results?
 
+The Q-Q plots show good agreement with the expected normality distribution and support the result of Mardia's tests. The plants’ Q-Q plot show slightly greater deviations from the diagonal.
+
 16. How does creating a linear combination of variables (e.g., Math + Science) affect the variance?
+
+For any linear combination $$aX +b Y$$ where a nd b are the constants, X and Y are the variables, the variance is given by:
+
+$a^2 \cdot \text{Var}(X) + b^2 \cdot  \text{Var}(Y) + 2ab \cdot  \text{Cov}(X,Y)$
+
+The variance of the linear combination depends on how each variable varies (variance) and how they move together (covariance). The linear combination of highly diverse and strongly correlated variables may have higher variance.
+
+```{r}
+sapply(grades, var)
+sapply(dims, var)
+```
+In the students dataset, the MathSci combination has less variability compared to Math and Science.
 
 17. How is the correlation of this new variable with another variable (e.g., English) useful in understanding combined effects?
 
+It helps us understand how strongly this combination relates to another variable. The correlation coefficient of MathSci and English is quite high, indicating that a student who does well in Math and Science tends to also do well in English.
+
+```{r}
+cor(grades$MathSci, grades$English)
+```
+
 18. Could linear combinations be used to create indices or scores? Provide an example from a real-world context.
+
+Linear combinations allow us to combine multiple variables into a single metric by assigning weights to each component. For example, in FEU, the grading system in GEDs is composed of 70% Formative Assessment scores and 30% Summative Assessment scores (Final Grade = 0.7 * FA + 0.3 * SA).
 
 19. Across the analyses, which variable(s) appear most influential in defining the overall structure of the datasets?
 
+Height appear to be a great influence in the overall structure of the plants dataset due to its significantly high variance compared to other variables in this dataset.
+
 20. If you were to perform a principal component analysis (PCA), how might the findings from your scatterplots, correlations, and linear combinations guide you?
+
+These information would help us identify variables with strong correlation and redundancy. We could then reduce two highly correlated variables into one without losing much information.
+
+
