@@ -1,0 +1,139 @@
+---
+title: "MANOVA Lab Practice"
+author: "Baybayon, Darlyn Antoinette B."
+output: pdf_document
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{-2cm}   % move title up
+geometry: top=2cm, bottom=2cm, left=2cm, right=2cm
+mainfont: "Georgia"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readr)
+  library(MVN)
+  library(mice)
+  library(VIM)
+})
+```
+
+### The Data
+
+```{r}
+df <- read_csv("manova_mancova_practice.csv", show_col_types = FALSE)
+head(df)
+```
+
+• Design: 3 instructional methods (Treatment = Control, MethodA, MethodB), 4 Schools (North/South/East/West), Gender, Age, SES_Index (z-score).
+
+• Outcomes: Post_Math, Post_Reading, Post_Science (0–100).
+
+• Covariates: Pre_Math, Pre_Reading, Pre_Science, SES_Index, Age.
+
+```{r}
+outcomes <- df[,10:12]
+covar <- df[,7:9]
+```
+
+
+
+### Data Preprocessing
+
+**Convert data types**
+
+```{r}
+df <- df %>%
+  mutate(across(c("Treatment", "Gender", "School"), as.factor))
+```
+
+
+**Check nulls and handle them**
+
+```{r}
+aggr(df, numbers = TRUE, sortVars = TRUE, labels = names(df), cex.axis = 0.7)
+
+```
+
+
+```{r}
+df_imputed <- kNN(df, k = 5, imp_var = FALSE)
+colSums(is.na(df_imputed))
+```
+
+Mean and variance after imputation
+```{r}
+round(data.frame(mean = sapply(select(df,where(is.numeric)), mean, na.rm=TRUE),
+           mean_imp = sapply(select(df_imputed,where(is.numeric)), mean),
+           var = sapply(select(df,where(is.numeric)), var, , na.rm=TRUE),
+           var_imp = sapply(select(df_imputed,where(is.numeric)), var)),4)
+
+```
+
+
+
+**Check and handle outliers**
+
+Univariate outliers
+```{r}
+lapply(select(df_imputed,where(is.numeric)), function(x) boxplot.stats(x)$out)
+```
+
+Multivariate outliers
+```{r}
+dvs <-df_imputed[,10:12]
+dvs$dist <- mahalanobis(dvs, colMeans(dvs), cov(dvs))
+threshold <- qchisq(1 - 0.001, df = 3)
+outliers <- dvs[dvs$dist > threshold,]
+outliers
+```
+
+
+### One-way MANOVA
+
+Fit the one-way MANOVA model on Treatment using Post_Math, Post_Reading, and Post_Science as dependent variables
+
+```{r}
+manova_result <- manova(
+  cbind(Post_Math, Post_Reading, Post_Science) ~ Treatment,
+  data = df_imputed
+)
+```
+
+
+```{r}
+summary(manova_result)
+```
+
+
+```{r}
+pillai <- summary(manova_result, test ="Pillai")
+wilks <- summary(manova_result, test ="Wilks")
+roy <- summary(manova_result, test ="Roy")
+hl<- summary(manova_result, test ="Hotelling-Lawley")
+
+data.frame( Pillai = pillai$stats[1,2],
+            Wilks = wilks$stats[1,2],
+            Hotell_Lawley = hl$stats[1,2],
+            Roy = roy$stats[1,2])
+```
+
+
+```{r}
+summary.aov(manova_result)
+```
+
+
+**Check assumptions**
+
+```{r}
+
+```
+
+
+
