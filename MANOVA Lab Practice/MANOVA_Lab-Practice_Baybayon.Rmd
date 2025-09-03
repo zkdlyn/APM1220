@@ -1,0 +1,166 @@
+---
+title: "MANOVA Lab Practice"
+author: "Baybayon, Darlyn Antoinette B."
+output: pdf_document
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{-2cm}   % move title up
+geometry: top=2cm, bottom=2cm, left=2cm, right=2cm
+mainfont: "Georgia"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readr)
+  library(MVN)
+  library(mice)
+  library(VIM)
+  library(heplots)
+})
+```
+
+## The Data
+
+```{r}
+df <- read_csv("manova_mancova_practice.csv", show_col_types = FALSE)
+head(df)
+```
+
+
+• Design: 3 instructional methods (Treatment = Control, MethodA, MethodB), 4 Schools (North/South/East/West), Gender, Age, SES_Index (z-score).
+
+• Outcomes: Post_Math, Post_Reading, Post_Science (0–100).
+
+• Covariates: Pre_Math, Pre_Reading, Pre_Science, SES_Index, Age.
+
+## Data Preprocessing
+
+**Convert data types**
+
+```{r}
+df <- df %>%
+  select(-"ID") %>%
+  mutate(across(c("Treatment", "Gender", "School"), as.factor))
+```
+
+**Check nulls and handle them**
+
+```{r}
+colSums(is.na(df))
+```
+
+There are some missing data in numeric columns. According to the design of the data, the missingness is MCAR, so we can impute the missing values with a simple mean imputation.
+
+```{r}
+# df_imputed <- kNN(df, k = 5, imp_var = FALSE)
+df_imputed <- df %>%
+  mutate(
+    SES_Index = ifelse(is.na(SES_Index), mean(SES_Index, na.rm=TRUE), SES_Index),
+    Pre_Math = ifelse(is.na(Pre_Math), mean(Pre_Math, na.rm=TRUE), Pre_Math),
+    Pre_Reading = ifelse(is.na(Pre_Reading), mean(Pre_Reading, na.rm=TRUE), Pre_Reading),
+    Pre_Science = ifelse(is.na(Pre_Science), mean(Pre_Science, na.rm=TRUE), Pre_Science),
+    Post_Math = ifelse(is.na(Post_Math), mean(Post_Math, na.rm=TRUE), Post_Math),
+    Post_Reading = ifelse(is.na(Post_Reading), mean(Post_Reading, na.rm=TRUE), Post_Reading),
+    Post_Science = ifelse(is.na(Post_Science), mean(Post_Science, na.rm=TRUE), Post_Science),
+  )
+colSums(is.na(df_imputed))
+```
+
+Mean and variance after imputation
+
+```{r}
+round(data.frame(mean = sapply(select(df,where(is.numeric)), mean, na.rm=TRUE),
+           mean_imp = sapply(select(df_imputed,where(is.numeric)), mean),
+           var = sapply(select(df,where(is.numeric)), var, , na.rm=TRUE),
+           var_imp = sapply(select(df_imputed,where(is.numeric)), var)),4)
+
+```
+
+**Check and handle outliers**
+
+*Univariate outliers*
+
+```{r}
+lapply(select(df_imputed,where(is.numeric)), function(x) boxplot.stats(x)$out)
+```
+
+*Multivariate outliers*
+
+```{r}
+dvs <-df_imputed[,9:11]
+dvs$dist <- mahalanobis(dvs, colMeans(dvs), cov(dvs))
+threshold <- qchisq(1 - 0.001, df = 3)
+outliers <- dvs[dvs$dist > threshold,]
+outliers
+```
+
+```{r}
+df_no_outliers <- df_imputed[-114,]
+```
+
+## One-way MANOVA
+
+Treatment → DVs = Post_Math, Post_Reading, Post_Science.
+
+```{r}
+manova_result <- manova(
+  cbind(Post_Math, Post_Reading, Post_Science) ~ Treatment,
+  data = df_no_outliers
+)
+```
+
+
+```{r}
+summary(manova_result)
+```
+
+### Test Statistics
+
+```{r}
+wilks <- summary(manova_result, test ="Wilks")
+pillai <- summary(manova_result, test ="Pillai")
+roy <- summary(manova_result, test ="Roy")
+lh<- summary(manova_result, test ="Hotelling-Lawley")
+
+data.frame( Wilks = wilks$stats[1,2],
+            Pillai = pillai$stats[1,2],
+            Lawley_Hotell = lh$stats[1,2],
+            Roy = roy$stats[1,2])
+```
+
+
+```{r}
+summary.aov(manova_result)
+```
+
+### Check assumptions
+
+**Independence of Observations**
+Based on the design of the data, the observations within and between groups are independent. Each student is in a single treatment group (Control, Method A, or Method B). Each student also contributes only one set of Endline test scores. As such, the observations within and between groups are considered independent, satisfying a key assumption for multivariate analysis.
+
+
+**Homogeneity of Variance-Covariance Matrices**
+```{r}
+boxM(cbind(Post_Math, Post_Reading, Post_Science) ~ Treatment,
+  data = df_no_outliers)
+```
+
+The Box's M test did not reveal a significant difference (p \> 0.05) in covariance matrices across the treatment groups. Therefore the assumption of homogeneity of covariance matrices is met and the MANOVA is valid.
+
+**Multivariate Normality**
+```{r}
+multivariate_diagnostic_plot(df_no_outliers[,9:11], type="qq")
+```
+
+The Q-Q plot shows that most points align with the theoretical quantiles with some observations in the upper tail deviating slightly from the diagonal reference line. This indicates good agreement with the expected normal distribution Hence, based on the Q-Q plot of Mahalanobis distances, the assumption of multivariate normality appears to be reasonably satisfied.
+
+
+## Two-way MANOVA 
+Treatment, School, and their interaction
+
+
