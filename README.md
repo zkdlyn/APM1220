@@ -1,6 +1,9 @@
 Dataset: manova_mancova_practice.csv
+
 Units: Students (unbalanced across treatments), grouped by School
+
 Columns:
+
 - ID: Pseudonymous identifier.
 - Treatment: Instructional method with 3 levels: Control, MethodA, MethodB.
 (Between-subjects factor)
@@ -13,7 +16,10 @@ potential fixed effect)
 each.
 - Post_Math, Post_Reading, Post_Science: Endline test scores (0-100). ~4% missing
 each.
+
+
 Design notes:
+
 - Group sizes are unbalanced: Control=62, MethodA=73, MethodB=49.
 - Schools impart small fixed effects on POST outcomes.
 - Post outcomes depend on pretreatment scores, SES, and Age (so MANCOVA is
