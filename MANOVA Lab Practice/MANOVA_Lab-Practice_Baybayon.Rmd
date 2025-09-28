@@ -19,7 +19,6 @@ suppressPackageStartupMessages({
   library(readr)
   library(MVN)
   library(mice)
-  library(VIM)
   library(heplots)
 })
 ```
@@ -57,7 +56,6 @@ colSums(is.na(df))
 There are some missing data in numeric columns. According to the design of the data, the missingness is MCAR, so we can impute the missing values with a simple mean imputation.
 
 ```{r}
-# df_imputed <- kNN(df, k = 5, imp_var = FALSE)
 df_imputed <- df %>%
   mutate(
     SES_Index = ifelse(is.na(SES_Index), mean(SES_Index, na.rm=TRUE), SES_Index),
@@ -86,11 +84,13 @@ round(data.frame(mean = sapply(select(df,where(is.numeric)), mean, na.rm=TRUE),
 *Univariate outliers*
 
 ```{r}
+
+boxplot(df_imputed)
 lapply(select(df_imputed,where(is.numeric)), function(x) boxplot.stats(x)$out)
+
 ```
 
 *Multivariate outliers*
-
 ```{r}
 dvs <-df_imputed[,9:11]
 dvs$dist <- mahalanobis(dvs, colMeans(dvs), cov(dvs))
@@ -112,12 +112,15 @@ manova_result <- manova(
   cbind(Post_Math, Post_Reading, Post_Science) ~ Treatment,
   data = df_no_outliers
 )
+
 ```
 
 
 ```{r}
 summary(manova_result)
 ```
+
+A one-way multivariate analysis of variance (MANOVA) was conducted to examine the effect of Treatment on scores in Math, Reading, and Science. The results indicate a statistically significant difference in the mean test scores across the different treatment groups (Pillai = 0.091, F(6, 358) = 2.85, p = 0.010). Thus, we reject the null hypothesis, and conclude that the instructional method has a significant effect on the combined outcomes of the scores.
 
 ### Test Statistics
 
@@ -133,15 +136,26 @@ data.frame( Wilks = wilks$stats[1,2],
             Roy = roy$stats[1,2])
 ```
 
+The Wilks' Lambda quantifies how much of the variance in the combination of the dependent variables is not explained by the independent variable. The Wilks' Lambda of 0.9097 indicates that 90.97% of the variance in test scores is not explained by the treatment group, suggesting a weak effect.
+
+The Pillai's Trace measures how much of the multivariate variance is explained by the independent variable. The value of 0.0912 indicates that about 9.12% of the variance in test scores is explained by the treatment group. Similar to Wilks' Lambda, this suggests that the treatment has a weak effect on the scores.
+
+The Lawley–Hotelling Trace value of 0.0982 similarly indicates that the treatment explains a low percentage of the combined variance across the test measures, again pointing to a small effect.
+
+The Roy's Largest Root value of 0.0861 reflects the maximum variance explained in a single dimension where group differences are strongest. This also suggests a weak effect of the treatment on test scores.
 
 ```{r}
 summary.aov(manova_result)
 ```
 
+Follow-up univariate ANOVAs revealed that Post_Science scores differed significantly between treatment groups (p=0.002) while Post_Reading scores differed marginally (p =0.0519). 
+
 ### Check assumptions
 
-**Independence of Observations**
+**Independence of Observations** 
+
 Based on the design of the data, the observations within and between groups are independent. Each student is in a single treatment group (Control, Method A, or Method B). Each student also contributes only one set of Endline test scores. As such, the observations within and between groups are considered independent, satisfying a key assumption for multivariate analysis.
+
 
 
 **Homogeneity of Variance-Covariance Matrices**
@@ -162,5 +176,14 @@ The Q-Q plot shows that most points align with the theoretical quantiles with so
 
 ## Two-way MANOVA 
 Treatment, School, and their interaction
+
+```{r}
+manova_2w_result <- manova(cbind(Post_Math, Post_Reading, Post_Science) ~ 
+                             Treatment * School, data = df_no_outliers)
+summary(manova_2w_result)
+
+```
+
+A two-way MANOVA was conducted to examine the effect of Treatment, School, and their interaction on combined test scores in Math, Reading, and Science. The results reveal a statistically significant multivariate effect of Treatment (Pillais = 0.098, F(6,340) = 2.91, p = 0.009) on the test scores. Meanwhile School and its interaction with Treatment did not reach statistical significance.
 
 

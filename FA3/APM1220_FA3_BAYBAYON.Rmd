@@ -1,0 +1,34 @@
+---
+title: "Formative Assessment 3"
+author: "Baybayon, Darlyn Antoinette B."
+output: pdf_document
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{-2cm}   % move title up
+geometry: top=2cm, bottom=2cm, left=2cm, right=2cm
+mainfont: "Georgia"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(readr)
+  library(ggplot2)
+  library(dplyr)
+  library(MVN)
+  library(mice)
+  library(heplots)
+})
+```
+
+
+## Flea Beetles Dataset
+
+```{r}
+df1 <- read_csv("")
+```
+
