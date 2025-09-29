@@ -41,38 +41,70 @@ beetles
 
 (a) **Find the discriminant function coefficient vector and test significance of separation.**
 
+Compute group mean vectors
 ```{r}
-beetle1.mean <- colMeans(beetle1[, 1:4])
-beetle2.mean <- colMeans(beetle2[, 1:4])
-
+xbar1 <- colMeans(beetle1[, 1:4])
+xbar2 <- colMeans(beetle2[, 1:4])
 ```
+
+Compute group covariance matrices
+```{r}
+S1 <- cov(beetle1[, 1:4])
+S2 <- cov(beetle2[, 1:4])
+```
+
+
+Pooled within-group covariance matrix $S_p=\frac{(n_1-1)S_1+(n_2)S_2}{n_1+n_2-2}$
 
 ```{r}
 n1 <- nrow(beetle1)
 n2 <- nrow(beetle2)
-w1 <- (n1 - 1) * var(beetle1[, 1:4])
-w2 <- (n2 - 1) * var(beetle2[, 1:4])
 
-sp1 <- 1 / (n1 + n2 - 2) * (w1 + w2)
+Sp <- ((n1-1) * S1 + (n2-1) * S2) / (n1+n2-2)
+```
 
-a <- solve(sp1) %*% (beetle1.mean - beetle2.mean)
+Compute $a=S_p^{-1}(\bar{x_1}-\bar{x_2})$
+```{r}
+a <- solve(Sp, xbar1-xbar2) 
 a
 ```
+Hotelling's $T^2$
+```{r}
+diff <- xbar1 - xbar2
+
+T2 <- (n1*n2) / (n1+n2) * t(diff) %*% solve(Sp) %*% diff
+T2 <- as.numeric(T2)  
+p=ncol(beetles)-1
+
+df1 <- p
+df2 <- n1 + n2 - p - 1
+
+F_stat <- (df2*T2) / (df1*(n1+n2- 2))
+
+data.frame(
+  T2 = T2, 
+  F_stat = F_stat,
+  df1 = df1, df2 = df2,
+  p_val = p_val
+)
+```
+Convert to F statistic
+```{r}
+
+```
+
+
 
 (b) **Find the standardized coefficients.**
 
+
 ```{r}
-diag(sp1)^(1/2) * a
+a / (sqrt(diag(Sp)))
 ```
+
 Hence, we have the following discriminant function:
 
 $$z=4.137y_1-2.5y_2-1.158y_3-2.068y_4$$
-
-
-```{r}
-beet.lda <- lda(Species ~ ., data = beetles)
-beet.lda$scaling /a
-```
 
 (c) **Calculate t-tests for individual variables.**
 
