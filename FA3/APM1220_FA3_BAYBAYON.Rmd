@@ -19,8 +19,10 @@ suppressPackageStartupMessages({
   library(knitr)
   library(kableExtra)
   library(readxl)
+  library(MVN)
   library(Hotelling)
   library(dplyr)
+  library(heplots)
   library(MASS)
 })
 ```
@@ -56,6 +58,13 @@ Compute group covariance matrices
 S1 <- cov(beetle1[, 1:4])
 S2 <- cov(beetle2[, 1:4])
 ```
+
+```{r}
+boxM(cbind(Y1, Y2, Y3, Y4)~ Species, data = beetles)
+```
+
+The Box’sM test did not reveal a significant difference (p>0.05) in covariance matrices across the treatment
+groups. Therefore, the assumption of homogeneity of covariance matrices is met.
 
 Pooled within-group covariance matrix $S_p=\frac{(n_1-1)S_1+(n_2)S_2}{n_1+n_2-2}$
 
@@ -136,14 +145,19 @@ for (i in 1:length(vars)) {
   test <- t.test(beetle1[[var]], beetle2[[var]])
   ttest_results[i] <- test$statistic
   p_vals[i] <- test$p.value
-  
 }
 
 kable(data.frame(variable = vars, t = ttest_results, p_val = p_vals))
 ```
 
+The t-tests for each variable comparing the means of two groups, all returned to be significant (p<0.05). This indicates a statistically significant difference between the groups for each variable. 
 
 (d) **Compare the results of (b) and (c) as to the contribution of each variable to separation of the groups.**
+
+All between-group differences of each variable were significantly different, suggesting that all variables likely have strong discriminatory power. Furthermore, the absolute value of the t-values reflect the significance or strength of evidence for differences between groups on each variable. For larger absolute t-values, there is stronger evidence that the variable differs between groups.
+
+Based on the results of (c), Y3 shows the largest between-group difference, while Y1 shows the smallest. From the standardized discriminant function coefficients and the partial F values, we found that Y1 has the most contribution to the separation of groups, while Y3 contributes the least. So, even though Y3 differs strongly between groups, Y1 is more important in discriminating between them  This pattern can occur because Y3’s information may overlap with other variables, so it provides little unique contribution to the separation once other variables are accounted for.
+
 
 (e) **Find the partial F for each variable. Do the partial F’s rank the variables in the same order of importance as the standardized coefficients?**
 
